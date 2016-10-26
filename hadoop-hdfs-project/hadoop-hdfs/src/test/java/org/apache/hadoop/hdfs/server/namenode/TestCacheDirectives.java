@@ -112,11 +112,11 @@ public class TestCacheDirectives {
     NativeIO.POSIX.setCacheManipulator(new NoMlockCacheManipulator());
   }
 
-  private static final long BLOCK_SIZE = 4096;
+  private static final long BLOCK_SIZE = (long) NativeIO.POSIX.getCacheManipulator().getOperatingSystemPageSize();
   private static final int NUM_DATANODES = 4;
   // Most Linux installs will allow non-root users to lock 64KB.
   // In this test though, we stub out mlock so this doesn't matter.
-  private static final long CACHE_CAPACITY = 64 * 1024 / NUM_DATANODES;
+  private static final long CACHE_CAPACITY = 16 * BLOCK_SIZE / NUM_DATANODES;
 
   private static HdfsConfiguration createCachingConf() {
     HdfsConfiguration conf = new HdfsConfiguration();
@@ -1446,7 +1446,7 @@ public class TestCacheDirectives {
 
     // Try creating a file with giant-sized blocks that exceed cache capacity
     dfs.delete(fileName, false);
-    DFSTestUtil.createFile(dfs, fileName, 4096, fileLen, CACHE_CAPACITY * 2,
+    DFSTestUtil.createFile(dfs, fileName, (int)BLOCK_SIZE, fileLen, CACHE_CAPACITY * 2,
         (short) 1, 0xFADED);
     checkPendingCachedEmpty(cluster);
     checkPendingCachedEmpty(cluster);

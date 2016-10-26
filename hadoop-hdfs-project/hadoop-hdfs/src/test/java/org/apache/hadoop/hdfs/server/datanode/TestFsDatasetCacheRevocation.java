@@ -58,7 +58,8 @@ public class TestFsDatasetCacheRevocation {
 
   private static TemporarySocketDirectory sockDir;
 
-  private static final int BLOCK_SIZE = 4096;
+  //Was 4096
+  private static final int BLOCK_SIZE = (int) NativeIO.POSIX.getCacheManipulator().getOperatingSystemPageSize();
 
   @Before
   public void setUp() throws Exception {
