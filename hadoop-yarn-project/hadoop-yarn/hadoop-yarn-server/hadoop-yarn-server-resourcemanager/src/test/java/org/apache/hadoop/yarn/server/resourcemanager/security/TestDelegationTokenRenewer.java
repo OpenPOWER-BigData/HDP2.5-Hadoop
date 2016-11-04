@@ -1017,7 +1017,7 @@ public class TestDelegationTokenRenewer {
             "password2".getBytes(), dtId2.getKind(), new Text("service2"));
     final AtomicBoolean firstRenewInvoked = new AtomicBoolean(false);
     final AtomicBoolean secondRenewInvoked = new AtomicBoolean(false);
-    MockRM rm2 = new TestSecurityMockRM(yarnConf, memStore) {
+    final MockRM rm2 = new TestSecurityMockRM(yarnConf, memStore) {
       @Override
       protected DelegationTokenRenewer createDelegationTokenRenewer() {
         return new DelegationTokenRenewer() {
@@ -1049,7 +1049,12 @@ public class TestDelegationTokenRenewer {
 
     // simulating restart the rm
     rm2.start();
-
+    GenericTestUtils.waitFor(new Supplier<Boolean>() {
+      public Boolean get() {
+        return rm2.getRMContext().getDelegationTokenRenewer()
+          .getDelegationTokens().contains(updatedToken);
+      }
+     }, 1000, 20000);
     // check nm can retrieve the token
     final MockNM nm1 =
         new MockNM("127.0.0.1:1234", 15120, rm2.getResourceTrackerService());
